@@ -1,0 +1,274 @@
+
+main.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         000000fe  00000000  00000000  00000054  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .debug_aranges 00000020  00000000  00000000  00000152  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  2 .debug_pubnames 0000006c  00000000  00000000  00000172  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  3 .debug_info   00000290  00000000  00000000  000001de  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  4 .debug_abbrev 00000105  00000000  00000000  0000046e  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  5 .debug_line   000002a1  00000000  00000000  00000573  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  6 .debug_frame  00000060  00000000  00000000  00000814  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  7 .debug_str    00000122  00000000  00000000  00000874  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  8 .debug_loc    00000097  00000000  00000000  00000996  2**0
+                  CONTENTS, READONLY, DEBUGGING
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+   0:	12 c0       	rjmp	.+36     	; 0x26 <__ctors_end>
+   2:	19 c0       	rjmp	.+50     	; 0x36 <__bad_interrupt>
+   4:	18 c0       	rjmp	.+48     	; 0x36 <__bad_interrupt>
+   6:	17 c0       	rjmp	.+46     	; 0x36 <__bad_interrupt>
+   8:	16 c0       	rjmp	.+44     	; 0x36 <__bad_interrupt>
+   a:	15 c0       	rjmp	.+42     	; 0x36 <__bad_interrupt>
+   c:	14 c0       	rjmp	.+40     	; 0x36 <__bad_interrupt>
+   e:	13 c0       	rjmp	.+38     	; 0x36 <__bad_interrupt>
+  10:	12 c0       	rjmp	.+36     	; 0x36 <__bad_interrupt>
+  12:	11 c0       	rjmp	.+34     	; 0x36 <__bad_interrupt>
+  14:	10 c0       	rjmp	.+32     	; 0x36 <__bad_interrupt>
+  16:	0f c0       	rjmp	.+30     	; 0x36 <__bad_interrupt>
+  18:	0e c0       	rjmp	.+28     	; 0x36 <__bad_interrupt>
+  1a:	0d c0       	rjmp	.+26     	; 0x36 <__bad_interrupt>
+  1c:	0c c0       	rjmp	.+24     	; 0x36 <__bad_interrupt>
+  1e:	0b c0       	rjmp	.+22     	; 0x36 <__bad_interrupt>
+  20:	0a c0       	rjmp	.+20     	; 0x36 <__bad_interrupt>
+  22:	09 c0       	rjmp	.+18     	; 0x36 <__bad_interrupt>
+  24:	08 c0       	rjmp	.+16     	; 0x36 <__bad_interrupt>
+
+00000026 <__ctors_end>:
+  26:	11 24       	eor	r1, r1
+  28:	1f be       	out	0x3f, r1	; 63
+  2a:	cf e5       	ldi	r28, 0x5F	; 95
+  2c:	d4 e0       	ldi	r29, 0x04	; 4
+  2e:	de bf       	out	0x3e, r29	; 62
+  30:	cd bf       	out	0x3d, r28	; 61
+  32:	2a d0       	rcall	.+84     	; 0x88 <main>
+  34:	62 c0       	rjmp	.+196    	; 0xfa <_exit>
+
+00000036 <__bad_interrupt>:
+  36:	e4 cf       	rjmp	.-56     	; 0x0 <__vectors>
+
+00000038 <Peek_A_Boo>:
+	DataDir_MrLCDsCrib = 0xFF; // op
+}
+
+void Peek_A_Boo()
+{
+	MrLCDsControl |= 1<<LightSwitch; // Enable on
+  38:	95 9a       	sbi	0x12, 5	; 18
+	asm volatile("nop");		// volatile means a dynamic statement, compiler will not optimize it out
+  3a:	00 00       	nop
+	asm volatile("nop");
+  3c:	00 00       	nop
+	MrLCDsControl &= ~1<<LightSwitch;
+  3e:	82 b3       	in	r24, 0x12	; 18
+  40:	80 7c       	andi	r24, 0xC0	; 192
+  42:	82 bb       	out	0x12, r24	; 18
+}
+  44:	08 95       	ret
+
+00000046 <Check_if_MRLCD_isBusy>:
+	}
+}
+
+void Check_if_MRLCD_isBusy()
+{
+	DataDir_MrLCDsCrib = 0;		//ip DDRB
+  46:	17 ba       	out	0x17, r1	; 23
+	MrLCDsControl |= 1<<ReadWrite;
+  48:	97 9a       	sbi	0x12, 7	; 18
+	MrLCDsControl &= ~1<<BiPolarMood;	//command mode
+  4a:	82 b3       	in	r24, 0x12	; 18
+  4c:	88 7f       	andi	r24, 0xF8	; 248
+  4e:	82 bb       	out	0x12, r24	; 18
+  50:	01 c0       	rjmp	.+2      	; 0x54 <Check_if_MRLCD_isBusy+0xe>
+	
+	while(MrLCDsCrib >= 0x80) //D7 on PORTB Pin7 will be 1 when busy else 0
+	{
+		Peek_A_Boo();	// Every time MrLCD populates the crib with busy info, when in read mode
+  52:	f2 df       	rcall	.-28     	; 0x38 <Peek_A_Boo>
+{
+	DataDir_MrLCDsCrib = 0;		//ip DDRB
+	MrLCDsControl |= 1<<ReadWrite;
+	MrLCDsControl &= ~1<<BiPolarMood;	//command mode
+	
+	while(MrLCDsCrib >= 0x80) //D7 on PORTB Pin7 will be 1 when busy else 0
+  54:	c7 99       	sbic	0x18, 7	; 24
+  56:	fd cf       	rjmp	.-6      	; 0x52 <Check_if_MRLCD_isBusy+0xc>
+	{
+		Peek_A_Boo();	// Every time MrLCD populates the crib with busy info, when in read mode
+	}
+	
+	
+	DataDir_MrLCDsCrib = 0xFF; // op
+  58:	8f ef       	ldi	r24, 0xFF	; 255
+  5a:	87 bb       	out	0x17, r24	; 23
+}
+  5c:	08 95       	ret
+
+0000005e <Send_A_Command>:
+	asm volatile("nop");
+	MrLCDsControl &= ~1<<LightSwitch;
+}
+
+void Send_A_Command(unsigned char command)
+{
+  5e:	1f 93       	push	r17
+  60:	18 2f       	mov	r17, r24
+	Check_if_MRLCD_isBusy();
+  62:	f1 df       	rcall	.-30     	; 0x46 <Check_if_MRLCD_isBusy>
+	MrLCDsCrib = command;	//PORTB
+  64:	18 bb       	out	0x18, r17	; 24
+	MrLCDsControl &= ~(1<<ReadWrite | 1<<BiPolarMood);	//RW off, RS cleared
+  66:	82 b3       	in	r24, 0x12	; 18
+  68:	8b 77       	andi	r24, 0x7B	; 123
+  6a:	82 bb       	out	0x12, r24	; 18
+	Peek_A_Boo();
+  6c:	e5 df       	rcall	.-54     	; 0x38 <Peek_A_Boo>
+	MrLCDsCrib = 0;
+  6e:	18 ba       	out	0x18, r1	; 24
+	
+}
+  70:	1f 91       	pop	r17
+  72:	08 95       	ret
+
+00000074 <Send_A_Character>:
+
+void Send_A_Character(unsigned char character)
+{
+  74:	1f 93       	push	r17
+  76:	18 2f       	mov	r17, r24
+	Check_if_MRLCD_isBusy(); 
+  78:	e6 df       	rcall	.-52     	; 0x46 <Check_if_MRLCD_isBusy>
+	MrLCDsCrib = character;	//PORTB
+  7a:	18 bb       	out	0x18, r17	; 24
+	MrLCDsControl &= ~(1<<ReadWrite);	//RW off, RS cleared
+  7c:	97 98       	cbi	0x12, 7	; 18
+	MrLCDsControl |= (1<<BiPolarMood);	//RS
+  7e:	92 9a       	sbi	0x12, 2	; 18
+	Peek_A_Boo();		//Enable Process
+  80:	db df       	rcall	.-74     	; 0x38 <Peek_A_Boo>
+	MrLCDsCrib = 0;
+  82:	18 ba       	out	0x18, r1	; 24
+  84:	1f 91       	pop	r17
+  86:	08 95       	ret
+
+00000088 <main>:
+void Peek_A_Boo(void);
+void Send_A_Command(unsigned char command);
+void Send_A_Character(unsigned char character);
+
+int main(void)
+{
+  88:	0f 93       	push	r16
+  8a:	1f 93       	push	r17
+	DataDir_MrLCDsControl |= 1<<LightSwitch | 1<<ReadWrite | 1<<BiPolarMood;
+  8c:	81 b3       	in	r24, 0x11	; 17
+  8e:	84 6a       	ori	r24, 0xA4	; 164
+  90:	81 bb       	out	0x11, r24	; 17
+    milliseconds can be achieved.
+ */
+void
+_delay_loop_2(uint16_t __count)
+{
+	__asm__ volatile (
+  92:	80 e3       	ldi	r24, 0x30	; 48
+  94:	95 e7       	ldi	r25, 0x75	; 117
+  96:	01 97       	sbiw	r24, 0x01	; 1
+  98:	f1 f7       	brne	.-4      	; 0x96 <main+0xe>
+	_delay_ms(15);				//wait for LCD to get fully ON
+	
+	
+	Send_A_Command(0x01);		//Clear Screen
+  9a:	81 e0       	ldi	r24, 0x01	; 1
+  9c:	e0 df       	rcall	.-64     	; 0x5e <Send_A_Command>
+  9e:	00 ea       	ldi	r16, 0xA0	; 160
+  a0:	1f e0       	ldi	r17, 0x0F	; 15
+  a2:	c8 01       	movw	r24, r16
+  a4:	01 97       	sbiw	r24, 0x01	; 1
+  a6:	f1 f7       	brne	.-4      	; 0xa4 <main+0x1c>
+	_delay_ms(2);				//time taken to clear
+	Send_A_Command(0b00000010);	//Cursor Return
+  a8:	82 e0       	ldi	r24, 0x02	; 2
+  aa:	d9 df       	rcall	.-78     	; 0x5e <Send_A_Command>
+  ac:	c8 01       	movw	r24, r16
+  ae:	01 97       	sbiw	r24, 0x01	; 1
+  b0:	f1 f7       	brne	.-4      	; 0xae <main+0x26>
+	_delay_ms(2);				//time taken to clear
+	Send_A_Command(0x38);		//8 bit mode
+  b2:	88 e3       	ldi	r24, 0x38	; 56
+  b4:	d4 df       	rcall	.-88     	; 0x5e <Send_A_Command>
+    can be achieved.
+*/
+void
+_delay_loop_1(uint8_t __count)
+{
+	__asm__ volatile (
+  b6:	85 e8       	ldi	r24, 0x85	; 133
+  b8:	8a 95       	dec	r24
+  ba:	f1 f7       	brne	.-4      	; 0xb8 <main+0x30>
+	_delay_us(50);
+	Send_A_Command(0b00001111);	//control cursor, display on/off
+  bc:	8f e0       	ldi	r24, 0x0F	; 15
+  be:	cf df       	rcall	.-98     	; 0x5e <Send_A_Command>
+	//Send_A_Command(0b
+	
+	Send_A_Character(0x41); 	//A
+  c0:	81 e4       	ldi	r24, 0x41	; 65
+  c2:	d8 df       	rcall	.-80     	; 0x74 <Send_A_Character>
+	Send_A_Character(0x4E);		//N
+  c4:	8e e4       	ldi	r24, 0x4E	; 78
+  c6:	d6 df       	rcall	.-84     	; 0x74 <Send_A_Character>
+	Send_A_Character(0x49);		//I
+  c8:	89 e4       	ldi	r24, 0x49	; 73
+  ca:	d4 df       	rcall	.-88     	; 0x74 <Send_A_Character>
+	Send_A_Character(0x53);		//S
+  cc:	83 e5       	ldi	r24, 0x53	; 83
+  ce:	d2 df       	rcall	.-92     	; 0x74 <Send_A_Character>
+	Send_A_Character(0x48);		//H
+  d0:	88 e4       	ldi	r24, 0x48	; 72
+  d2:	d0 df       	rcall	.-96     	; 0x74 <Send_A_Character>
+	Send_A_Character(0x20);		//space
+  d4:	80 e2       	ldi	r24, 0x20	; 32
+  d6:	ce df       	rcall	.-100    	; 0x74 <Send_A_Character>
+	Send_A_Character(0x41);		//A
+  d8:	81 e4       	ldi	r24, 0x41	; 65
+  da:	cc df       	rcall	.-104    	; 0x74 <Send_A_Character>
+	Send_A_Character(0x56);		//V
+  dc:	86 e5       	ldi	r24, 0x56	; 86
+  de:	ca df       	rcall	.-108    	; 0x74 <Send_A_Character>
+	Send_A_Character(0x41);		//A
+  e0:	81 e4       	ldi	r24, 0x41	; 65
+  e2:	c8 df       	rcall	.-112    	; 0x74 <Send_A_Character>
+	Send_A_Character(0x4E);		//N
+  e4:	8e e4       	ldi	r24, 0x4E	; 78
+  e6:	c6 df       	rcall	.-116    	; 0x74 <Send_A_Character>
+	Send_A_Character(0x41);		//A
+  e8:	81 e4       	ldi	r24, 0x41	; 65
+  ea:	c4 df       	rcall	.-120    	; 0x74 <Send_A_Character>
+	Send_A_Character(0x20);		//space
+  ec:	80 e2       	ldi	r24, 0x20	; 32
+  ee:	c2 df       	rcall	.-124    	; 0x74 <Send_A_Character>
+	Send_A_Character(0x21);
+  f0:	81 e2       	ldi	r24, 0x21	; 33
+  f2:	c0 df       	rcall	.-128    	; 0x74 <Send_A_Character>
+	Send_A_Character(0x21);
+  f4:	81 e2       	ldi	r24, 0x21	; 33
+  f6:	be df       	rcall	.-132    	; 0x74 <Send_A_Character>
+  f8:	ff cf       	rjmp	.-2      	; 0xf8 <main+0x70>
+
+000000fa <_exit>:
+  fa:	f8 94       	cli
+
+000000fc <__stop_program>:
+  fc:	ff cf       	rjmp	.-2      	; 0xfc <__stop_program>
